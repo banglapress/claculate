@@ -1,15 +1,69 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
-  output   = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      String   @default("basic") // basic, premium, admin
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  profile   Profile? // ✅ Back-reference for one-to-one
+}
+
+
+model Profile {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id])
+    gender         String?
+  photo         String?  // Cloudinary
+  dob           DateTime
+  age           Int
+  height        Int
+  religion      Religion
+  caste         String?
+  sect          String?
+  division      Division
+  district      String
+  education     String
+  profession    String
+  income        Int?
+  maritalStatus MaritalStatus
+  bio           String
+  createdAt     DateTime @default(now())
+   updatedAt      DateTime @updatedAt
+}
+
+enum Religion {
+  ISLAM
+  HINDUISM
+  CHRISTIANITY
+  BUDDHISM
+  OTHER
+}
+
+enum Division {
+  DHAKA
+  CHATTOGRAM
+  RAJSHAHI
+  KHULNA
+  BARISHAL
+  SYLHET
+  RANGPUR
+  MYMENSINGH
+}
+
+enum MaritalStatus {
+  SINGLE
+  MARRIED
+  DIVORCED
+  WIDOWED
 }

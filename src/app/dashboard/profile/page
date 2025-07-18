@@ -1,0 +1,90 @@
+// src/app/dashboard/profile/page.js
+"use client";
+import { useEffect, useState } from "react";
+
+export default function ProfilePage() {
+  const [form, setForm] = useState({
+    age: "",
+    height: "",
+    religion: "ISLAM",
+    division: "DHAKA",
+    district: "",
+    education: "",
+    profession: "",
+    maritalStatus: "SINGLE",
+    bio: "",
+  });
+
+  useEffect(() => {
+    const load = async () => {
+      const res = await fetch("/api/profile");
+      if (res.ok) {
+        const data = await res.json();
+        if (data) setForm(data);
+      }
+    };
+    load();
+  }, []);
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    const res = await fetch("/api/profile", {
+      method: "POST",
+      body: JSON.stringify(form),
+      headers: { "Content-Type": "application/json" },
+    });
+    if (res.ok) {
+      alert("Profile saved!");
+    } else {
+      alert("Failed to save profile");
+    }
+  };
+
+  return (
+    <div className="max-w-2xl mx-auto mt-10 p-4">
+      <h2 className="text-2xl mb-6 font-semibold">My Profile</h2>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <input name="age" type="number" placeholder="Age" value={form.age} onChange={handleChange} className="w-full border p-2" required />
+        <input name="height" type="number" placeholder="Height (cm)" value={form.height} onChange={handleChange} className="w-full border p-2" required />
+        
+        <select name="religion" value={form.religion} onChange={handleChange} className="w-full border p-2">
+          <option value="ISLAM">Islam</option>
+          <option value="HINDUISM">Hinduism</option>
+          <option value="CHRISTIANITY">Christianity</option>
+          <option value="BUDDHISM">Buddhism</option>
+          <option value="OTHER">Other</option>
+        </select>
+
+        <select name="division" value={form.division} onChange={handleChange} className="w-full border p-2">
+          <option value="DHAKA">Dhaka</option>
+          <option value="CHATTOGRAM">Chattogram</option>
+          <option value="RAJSHAHI">Rajshahi</option>
+          <option value="KHULNA">Khulna</option>
+          <option value="BARISHAL">Barishal</option>
+          <option value="SYLHET">Sylhet</option>
+          <option value="RANGPUR">Rangpur</option>
+          <option value="MYMENSINGH">Mymensingh</option>
+        </select>
+
+        <input name="district" placeholder="District" value={form.district} onChange={handleChange} className="w-full border p-2" required />
+        <input name="education" placeholder="Education" value={form.education} onChange={handleChange} className="w-full border p-2" />
+        <input name="profession" placeholder="Profession" value={form.profession} onChange={handleChange} className="w-full border p-2" />
+
+        <select name="maritalStatus" value={form.maritalStatus} onChange={handleChange} className="w-full border p-2">
+          <option value="SINGLE">Single</option>
+          <option value="MARRIED">Married</option>
+          <option value="DIVORCED">Divorced</option>
+          <option value="WIDOWED">Widowed</option>
+        </select>
+
+        <textarea name="bio" placeholder="Short Bio" value={form.bio} onChange={handleChange} className="w-full border p-2" />
+
+        <button className="bg-green-600 text-white px-4 py-2 rounded" type="submit">Save</button>
+      </form>
+    </div>
+  );
+}
