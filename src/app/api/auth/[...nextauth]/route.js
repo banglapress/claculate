@@ -1,55 +1,31 @@
 // src/app/api/auth/[...nextauth]/route.js
 
-import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import { PrismaClient } from "@prisma/client";
-import bcrypt from "bcryptjs";
+import { getServerSession } from "next-auth";
+import { authOptions } from "../auth/[...nextauth]/route";
+import { prisma } from "@/lib/prisma";
 
-const prisma = new PrismaClient();
+export async function POST(req) {
+  const session = await getServerSession(authOptions);
+  if (!session) return new Response("Unauthorized", { status: 401 });
 
-const handler = NextAuth({
-  providers: [
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: {},
-        password: {},
-      },
-      async authorize(credentials) {
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
+  const userId = session.user.id;
+  const data = await req.json();
 
-        if (!user || !(await bcrypt.compare(credentials.password, user.password))) {
-          throw new Error("Invalid credentials");
-        }
+  const existing = await prisma.profile.findUnique({ where: { userId } });
 
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        };
-      },
-    }),
-  ],
-  callbacks: {
-    async session({ session, token }) {
-      session.user.id = token.sub;
-      session.user.role = token.role;
-      return session;
-    },
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role;
-      }
-      return token;
-    },
-  },
-  pages: {
-    signIn: "/login",
-  },
-  secret: process.env.NEXTAUTH_SECRET,
-});
+  const profile = existing
+    ? await prisma.profile.update({ where: { userId }, data })
+    : await prisma.profile.create({ data: { ...data, userId } });
 
-export { handler as GET, handler as POST };
+  return Response.json(profile);
+}
+
+export async function GET() {
+  const session = await getServerSession(authOptions);
+  if (!session) return new Response("Unauthorized", { status: 401 });
+
+  const userId = session.user.id;
+  const profile = await prisma.profile.findUnique({ where: { userId } });
+
+  return Response.json(profile);
+}
