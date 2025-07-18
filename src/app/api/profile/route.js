@@ -1,6 +1,7 @@
 // src/app/api/profile/route.js
+
 import { getServerSession } from "next-auth";
-import { authOptions } from "../auth/[...nextauth]/route";
+import { authOptions } from "../auth/[...nextauth]/route.js";
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req) {
